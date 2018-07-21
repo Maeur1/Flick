@@ -5,14 +5,21 @@ import signal
 import flicklib
 import time
 import curses
+import socket
+import json
 from curses import wrapper
 
 some_value = 5000
+sendFrequency = 100 #Hz to send the packets
 
 @flicklib.move()
 def move(x, y, z):
-    global xyztxt
-    xyztxt = '{:5.3f} {:5.3f} {:5.3f}'.format(x,y,z)
+    global xval
+    global yval
+    global zval
+    xval = x
+    yval = y
+    zval = z
 
 @flicklib.flick()
 def flick(start,finish):
@@ -21,14 +28,8 @@ def flick(start,finish):
 
 @flicklib.airwheel()
 def spinny(delta):
-    global some_value
-    global airwheeltxt
-    some_value += delta
-    if some_value < 0:
-        some_value = 0
-    if some_value > 10000:
-        some_value = 10000
-    airwheeltxt = str(some_value/100)
+    global airwheeldelta
+    airwheeldelta = delta
 
 @flicklib.double_tap()
 def doubletap(position):
@@ -50,24 +51,23 @@ def touch(position):
 #
 
 def main():
-    global xyztxt
+    global xval
+    global yval
+    global zval
     global flicktxt
-    global airwheeltxt
+    global airwheeldelta
     global touchtxt
     global taptxt
     global doubletaptxt
 
-    xyztxt = ''
+    xval = 0
+    yval = 0
+    zval = 0
     flicktxt = ''
-    flickcount = 0
-    airwheeltxt = ''
-    airwheelcount = 0
+    airwheeldelta = 0
     touchtxt = ''
-    touchcount = 0
     taptxt = ''
-    tapcount = 0
     doubletaptxt = ''
-    doubletapcount = 0
 
     fw_info = flicklib.getfwinfo()
 
@@ -75,12 +75,29 @@ def main():
     parser.add_argument("address", help="Hostname or IP address to send data to");
     parser.add_argument("port", help="UDP port to send data to")
     args = parser.parse_args()
-    print(args.port, args.address);
+
+    sock = socket.socket(socket.AF_INET,
+                         socket.SOCK_DGRAM)
+
+    data = {}
+    previous_data = {}
+    print "Sending Data Now"
 
     # Update data window continuously until Control-C
     while True:
-        
-        time.sleep(0.01)
+        data['x'] = xval
+        data['y'] = yval
+        data['z'] = zval
+        data['tap'] = taptxt
+        data['doubletap'] = doubletaptxt
+        data['touch'] = touchtxt
+        data['airwheel'] = airwheeldelta
+        data['flick'] = flicktxt
+        json_data = json.dumps(data)
+        if (json_data != previous_data):
+            sock.sendto(json_data, (args.address, int(args.port)))
+        previous_data = json_data
+        time.sleep(1/sendFrequency)
 
 if __name__ == '__main__':
     main()
