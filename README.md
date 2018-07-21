@@ -2,11 +2,13 @@
 # Flick
 This repository contains software and resources for the [Flick range](https://pisupp.ly/flick1) of gesture sensing and 3D tracking add on boards (and cases) for the Raspberry Pi and standalone applications (and soon BeagleBone, Arduino and more!). Brought to you by [Pi Supply](https://www.pi-supply.com)
 
+I have modified the files so that you can send the data from the board over a UDP connection.
+
 # Setup Flick
-Just run the following script in a terminal window and Flick will be automatically setup.
+Clone this repository and then run
 ```bash
-# Run this line and Flick will be setup and installed
-curl -sSL https://pisupp.ly/flickcode | sudo bash
+cd Flick
+sudo ./install.sh
 ```
 
 # Python API (Coming soon)
@@ -30,6 +32,12 @@ flick-2048
 
 # Gesture demo (Requires Raspberry Pi Sense HAT)
 flick-sense
+
+# UDP sender
+flick-udp (IP or Hostname) PORT_NO
+
+# UDP reciever
+flick-test-recieve
 ```
 
 # Hardware tips
